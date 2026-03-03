@@ -21,3 +21,7 @@ output.txt
 # Vercel
 .vercel
 node_modules
+.next
+out
+build
+package-lock.json
