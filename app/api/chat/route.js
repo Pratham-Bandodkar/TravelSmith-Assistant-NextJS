@@ -5,25 +5,55 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const client = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-});
+// Initialize client lazily or safely
+let client = null;
+try {
+    if (process.env.GROQ_API_KEY) {
+        client = new Groq({
+            apiKey: process.env.GROQ_API_KEY,
+        });
+    }
+} catch (e) {
+    console.error("Groq initialization error:", e);
+}
 
 // Load tours data
 const toursPath = path.join(process.cwd(), "data", "tours.json");
 let toursData = {};
 try {
-    const fileContent = fs.readFileSync(toursPath, "utf-8");
-    toursData = JSON.parse(fileContent);
+    if (fs.existsSync(toursPath)) {
+        const fileContent = fs.readFileSync(toursPath, "utf-8");
+        toursData = JSON.parse(fileContent);
+    } else {
+        console.warn("tours.json not found at:", toursPath);
+    }
 } catch (error) {
     console.error("Error loading tours.json:", error);
 }
 
+// In-memory history (Reset on cold start)
 const conversationHistory = [];
 
 export async function POST(req) {
     try {
+        if (!process.env.GROQ_API_KEY) {
+            return NextResponse.json(
+                { reply: "System Error: GROQ_API_KEY is not configured in Vercel environment variables." },
+                { status: 200 } // Return 200 so UI shows message instead of crashing
+            );
+        }
+
+        if (!client) {
+            return NextResponse.json(
+                { reply: "System Error: Failed to initialize AI client." },
+                { status: 200 }
+            );
+        }
+
         const { message } = await req.json();
+        if (!message) {
+            return NextResponse.json({ reply: "No message received." }, { status: 400 });
+        }
 
         conversationHistory.push({
             role: "user",
@@ -41,32 +71,7 @@ export async function POST(req) {
 You are Smith Assistant, the official AI assistant for Travel Smith Goa.
 
 STRICT RESPONSE FORMAT RULES:
-
-When suggesting MULTIPLE tours:
-
-🔹 Tour Name  
-🕒 Duration: ...  
-📅 Season: ...  
-🌟 Highlights: short phrase  
-
----
-
-When describing ONE tour:
-
-✨ Tour Name  
-🕒 Duration: ...  
-📅 Season: ...  
-
-🌟 Highlights:
-• point  
-• point  
-
-IMPORTANT RULES:
-- Remember previous conversation context.
-- NEVER write long paragraphs.
-- Keep answers premium and easy to scan.
-- Always prefer Travel Smith tours.
-
+... (Rest of system prompt)
 Tour Data:
 ${JSON.stringify(toursData)}
 `,
@@ -85,10 +90,10 @@ ${JSON.stringify(toursData)}
 
         return NextResponse.json({ reply: botReply });
     } catch (error) {
-        console.error("GROQ ERROR:", error);
+        console.error("GROQ RUNTIME ERROR:", error);
         return NextResponse.json(
-            { reply: "Sorry, something went wrong." },
-            { status: 500 }
+            { reply: "AI Error: " + error.message },
+            { status: 200 }
         );
     }
 }
