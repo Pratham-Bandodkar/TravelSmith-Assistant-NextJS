@@ -1,120 +1,72 @@
-# 🤖 Smith Assistant – AI Travel Chatbot
+# 🤖 TravelSmith Assistant – AI Travel Chatbot
 
-An intelligent AI-powered travel chatbot built for Travel Smith Goa tourism company.
-This chatbot helps users explore Goa tour packages, adventure activities, heritage tours, cruises, and more using real brochure data.
+An intelligent AI-powered travel chatbot built for **Travel Smith Goa**. 
+This chatbot helps users explore Goa tour packages, adventure activities, heritage tours, and more using real tour data.
 
 ---
 
 ## 🚀 Features
 
-- 💬 AI-powered responses using Groq LLaMA 3.3
-- 📚 Brochure-trained knowledge base
+- 💬 AI-powered responses using **Groq LLaMA 3.3-70b-versatile**
+- 📚 Brochure-trained knowledge base (`data/tours.json`)
 - 🧠 Conversation memory (context-aware replies)
-- 🎨 Brand-matched UI
-- 📱 Mobile responsive design
-- 💡 Quick category buttons
-- 🌍 Deployment ready (Railway / Render)
-- 🔒 Secure API key handling using environment variables
-
----
-
-## 🛠 Tech Stack
-
-- Frontend: HTML, CSS, JavaScript
-- Backend: Python (Flask)
-- AI Model: Groq LLaMA 3.3
-- Deployment: Railway / Render
-- Version Control: Git + GitHub
-
----
-
-## 📂 Project Structure
-
-smith-assistant/
-
-- app.py  
-- requirements.txt  
-- runtime.txt  
-- render.yaml  
-- README.md  
-
-templates/
-- index.html  
-
-static/
-- style.css  
-- script.js  
-
-data/
-- tours.json  
+- 🎨 Premium, mobile-responsive UI
+- 🌍 Deployment ready for **Vercel**, Render, or Railway
+- 🔒 Secure API key handling via environment variables
 
 ---
 
 ## ⚙️ Local Setup
 
-1. Clone repository:
+1. **Clone repository:**
+   ```bash
+   git clone https://github.com/ery133/smith-assistant.git
+   cd smith-assistant
+   ```
 
-git clone https://github.com/your-username/smith-assistant.git  
-cd smith-assistant  
+2. **Create virtual environment:**
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On Linux/Mac:
+   source venv/bin/activate
+   ```
 
-2. Create virtual environment:
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-python -m venv venv  
-venv\Scripts\activate  
+4. **Environment Variables:**
+   Create a `.env` file in the root directory:
+   ```env
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
 
-3. Install dependencies:
-
-pip install -r requirements.txt  
-
-4. Create a .env file in root:
-
-GROQ_API_KEY=your_api_key_here  
-
-5. Run the app:
-
-python app.py  
-
-Open in browser:
-
-http://127.0.0.1:5000  
-
----
-
-## 🌍 Deployment
-
-Deploy using Railway or Render.
-
-Make sure to add environment variable:
-
-GROQ_API_KEY
-
-in your hosting dashboard.
+5. **Run the app:**
+   ```bash
+   python app.py
+   ```
+   Access at `http://127.0.0.1:5000`
 
 ---
 
-## 📌 Example Queries
+## 🌍 Deployment on Vercel
 
-- Beach tours in Goa  
-- Tell me about Dudhsagar  
-- Adventure activities  
-- What is its duration?  
+This project is optimized for Vercel deployment.
 
----
-
-## 🏆 What This Project Demonstrates
-
-- AI integration in web applications  
-- Prompt engineering for structured output  
-- Context-aware conversation handling  
-- Secure deployment practices  
-- Full-stack development skills  
+1. Push your code to GitHub.
+2. Connect your repository to Vercel.
+3. Add the environment variable `GROQ_API_KEY` in the Vercel Dashboard.
+4. Vercel will automatically detect `vercel.json` and deploy the Flask app.
 
 ---
 
 ## 👩‍💻 Developed By
 
-Eishwari Yadav  
-BE Computer Engineering  
+**Eishwari Yadav**  
+*BE Computer Engineering*
 
 ---
 

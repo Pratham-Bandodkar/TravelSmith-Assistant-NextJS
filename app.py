@@ -4,11 +4,22 @@ from flask import Flask, render_template, request, jsonify
 from groq import Groq
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the current directory
+basedir = os.path.abspath(os.path.dirname(__file__))
+env_path = os.path.join(basedir, '.env')
+load_dotenv(env_path)
 
 app = Flask(__name__)
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    print("CRITICAL ERROR: GROQ_API_KEY not found in environment variables.")
+    # Exit if we are not in a testing environment
+    if os.environ.get('FLASK_ENV') != 'test':
+        import sys
+        # sys.exit(1) # We won't exit here so we can see the flask error if any
+
+client = Groq(api_key=api_key)
 
 with open("data/tours.json", "r", encoding="utf-8") as f:
     tours_data = json.load(f)
