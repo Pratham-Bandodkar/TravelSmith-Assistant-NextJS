@@ -43,15 +43,29 @@ export default function Home() {
     const text = manualMsg || input.trim();
     if (!text) return;
 
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    // Add user message to UI
+    const newUserMessage = { role: "user", content: text };
+    setMessages((prev) => [...prev, newUserMessage]);
+
     if (!manualMsg) setInput("");
     setIsTyping(true);
 
     try {
+      // Prepare history for API (excluding greeting and mapping roles)
+      const apiHistory = messages
+        .filter(msg => !msg.isGreeting)
+        .map(msg => ({
+          role: msg.role === "bot" ? "assistant" : "user",
+          content: msg.content.replace(/<br>/g, "\n").replace(/<[^>]*>/g, "") // Strip HTML for AI
+        }));
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          history: apiHistory
+        }),
       });
 
       const data = await response.json();

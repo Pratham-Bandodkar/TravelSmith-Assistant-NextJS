@@ -5,16 +5,14 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-// Initialize client lazily or safely
-let client = null;
-try {
+// Initialize client helper function
+function getGroqClient() {
     if (process.env.GROQ_API_KEY) {
-        client = new Groq({
+        return new Groq({
             apiKey: process.env.GROQ_API_KEY,
         });
     }
-} catch (e) {
-    console.error("Groq initialization error:", e);
+    return null;
 }
 
 // Load tours data
@@ -31,43 +29,34 @@ try {
     console.error("Error loading tours.json:", error);
 }
 
-// In-memory history (Reset on cold start)
-const conversationHistory = [];
+// In-memory history (Deprecated in favor of client-side history)
+const globalHistory = [];
 
 export async function POST(req) {
     try {
-        if (!process.env.GROQ_API_KEY) {
+        const { message, history } = await req.json();
+
+        const client = getGroqClient();
+
+        if (!client) {
             return NextResponse.json(
-                { reply: "System Error: GROQ_API_KEY is not configured in Vercel environment variables." },
+                { reply: "System Error: GROQ_API_KEY is not configured in Vercel environment variables. Please add it to your project settings." },
                 { status: 200 } // Return 200 so UI shows message instead of crashing
             );
         }
 
-        if (!client) {
-            return NextResponse.json(
-                { reply: "System Error: Failed to initialize AI client." },
-                { status: 200 }
-            );
-        }
-
-        const { message } = await req.json();
         if (!message) {
             return NextResponse.json({ reply: "No message received." }, { status: 400 });
         }
 
-        conversationHistory.push({
-            role: "user",
-            content: message,
-        });
+        // Use history from client if provided, otherwise fallback to global (not ideal for serverless)
+        const chatHistory = history || [];
 
-        const recentHistory = conversationHistory.slice(-6);
-
-        const completion = await client.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-                {
-                    role: "system",
-                    content: `
+        // Add current message to history for this completion
+        const messagesForAI = [
+            {
+                role: "system",
+                content: `
 You are Smith Assistant, the official AI assistant for Travel Smith Goa.
 
 STRICT RESPONSE FORMAT RULES:
@@ -100,18 +89,20 @@ IMPORTANT RULES:
 Tour Data:
 ${JSON.stringify(toursData)}
 `,
-                },
-                ...recentHistory,
-            ],
+            },
+            ...chatHistory,
+            { role: "user", content: message }
+        ];
+
+        const recentMessages = messagesForAI.slice(-10); // Limit context window
+
+        const completion = await client.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: recentMessages,
             temperature: 0.4,
         });
 
         const botReply = completion.choices[0].message.content;
-
-        conversationHistory.push({
-            role: "assistant",
-            content: botReply,
-        });
 
         return NextResponse.json({ reply: botReply });
     } catch (error) {
